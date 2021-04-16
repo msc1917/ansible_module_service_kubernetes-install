@@ -1,0 +1,17 @@
+---
+# Deaktiviertes File!!!
+
+- name: Create Directory-Structure
+  local_action: file path="{{ item }}" state=directory mode='0775'
+  run_once: true
+  become: no
+  with_items: 
+    - "{{ inventory_dir }}/dynamic_vars/files/download"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/kubeadm"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/kubeadm/{{ kubeadm.version }}"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/rke"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/k3s"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/minikube"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/rke/{{ rke.version }}"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/k3s/{{ k3s.version }}"
+    - "{{ inventory_dir }}/dynamic_vars/files/download/minikube/{{ minikube.version }}"

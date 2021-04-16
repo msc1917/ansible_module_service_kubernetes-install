@@ -1,0 +1,113 @@
+---
+- name: Add arm_64bit in config.txt
+  lineinfile:
+    path: /boot/config.txt
+    regexp: '^arm_64bit'
+    insertafter: '# Additional overlays and parameters are documented /boot/overlays/README'
+    line: arm_64bit=1
+  become: yes
+  when:
+    - ansible_facts.architecture is search("arm")
+    - ansible_facts.userspace_bits == "32"
+
+- name: Test for Raspbian
+  stat:
+    path: /boot/cmdline.txt
+  become: yes
+  register: cmdline
+
+- name: Activating cgroup on Raspbian
+  lineinfile:
+    path: /boot/cmdline.txt
+    regexp: '^(.*rootwait)$'
+    line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+    backrefs: true
+  become: yes
+  when: ( cmdline.stat.path is defined )
+          and
+        ( ansible_facts.architecture is search("arm") )
+  notify: reboot host
+  # register: boot_cmdline
+
+- name: Set SELinux to disabled state
+  selinux:
+    state: disabled
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+  become: yes
+
+- name: Enable IPv6 forwarding
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    state: present
+    reload: yes
+  become: yes
+
+- name: Set bridge-nf-call-iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+    state: present
+    reload: yes
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Set bridge-nf-call-ip6tables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+    state: present
+    reload: yes
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Register IP from master-node
+  set_fact: 
+    master_ip: "{{ ansible_default_ipv4.address }}"
+    master_serveNet_ip: "{{ serveNet_ip }}"
+  become: yes
+  run_once: true
+  when:
+    - k8s_node is defined
+    - k8s_node == "install_master"
+
+- name: Save master_ip to dynamic_vars/kubernetes.yml
+  lineinfile:
+    dest: "{{ inventory_dir }}/dynamic_vars/group/kubernetes.yml"
+    line: '_master_ip: "{{ master_ip }}"'
+    insertafter: "EOF"
+    regexp: '^_master_ip: ' 
+    state: present
+  run_once: true
+  delegate_to: localhost
+  become: no
+  when:
+    - k8s_node is defined
+    - k8s_node == "install_master"
+
+- name: Save master_serveNet_ip to dynamic_vars/kubernetes.yml
+  lineinfile:
+    dest: "{{ inventory_dir }}/dynamic_vars/group/kubernetes.yml"
+    line: '_master_serveNet_ip: "{{ master_serveNet_ip }}"'
+    insertafter: "EOF"
+    regexp: '^_master_serveNet_ip: ' 
+    state: present
+  run_once: true
+  delegate_to: localhost
+  become: no
+  when:
+    - k8s_node is defined
+    - k8s_node == "install_master"
+
+# - name: Rebooting on Raspbian 
+#   reboot:
+#   become: yes
+#   when: boot_cmdline is changed

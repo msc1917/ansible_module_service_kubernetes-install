@@ -1,0 +1,5 @@
+---
+- name: reboot host
+  reboot:
+  become: yes
+  ignore_errors: yes
