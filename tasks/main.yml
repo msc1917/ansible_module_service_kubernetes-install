@@ -1,12 +1,19 @@
 ---
-- name: Install additional software
+- name: Install software
   include_tasks: install.yml
   when:
     - k8s_node is defined
     - k8s_node in [ "install_master", "become_master", "node" ]
 
-- name: Base-Setup for host
-  include_tasks: configure.yml
+- name: Base-Setup for server
+  include_tasks: configure-server.yml
   when:
     - k8s_node is defined
     - k8s_node in [ "install_master", "become_master", "node" ]
+
+- name: Base-Setup for all hosts
+  include_tasks: configure-all.yml
+  when:
+    - k8s_node is defined
+    - k8s_node in [ "install_master", "become_master", "node" ]
+

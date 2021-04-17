@@ -1,0 +1,21 @@
+---
+- name: Setup bash-completion kubectl
+  shell:
+    cmd: "kubectl completion bash >/etc/bash_completion.d/kubectl"
+    creates: /etc/bash_completion.d/kubectl
+  ignore_errors:      yes
+  become: yes
+
+- name: Setup bash-completion kubeadm
+  shell:
+    cmd: "kubeadm completion bash >/etc/bash_completion.d/kubeadm"
+    creates: /etc/bash_completion.d/kubeadm
+  ignore_errors:      yes
+  become: yes
+
+- name: Setup bash-completion helm
+  shell:
+    cmd: "helm completion bash >/etc/bash_completion.d/helm"
+    creates: /etc/bash_completion.d/helm
+  ignore_errors:      yes
+  become: yes

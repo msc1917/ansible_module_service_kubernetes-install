@@ -7,19 +7,11 @@
   ignore_errors: yes
   with_items:
     - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    - https://baltocdn.com/helm/signing.asc
+    - https://download.docker.com/linux/debian/gpg
   when: 
     - ansible_distribution == "Debian"
     - ansible_distribution_release == "buster"
-
-# - name: Add kubernetes repository for Debian Buster
-#   apt_repository:
-#     repo: "{{ item }}"
-#     state: absent
-#   with_items:
-#     - deb https://apt.kubernetes.io/ kubernetes-buster main
-#   when: 
-#     - ansible_distribution == "Debian"
-#     - ansible_distribution_release == "buster"
 
 - name: Add kubernetes repository for Debian Buster
   apt_repository:
@@ -29,13 +21,15 @@
   become: yes
   with_items:
     - deb https://apt.kubernetes.io/ kubernetes-xenial main
+    - deb https://baltocdn.com/helm/stable/debian/ all main
+    - deb https://download.docker.com/linux/debian buster stable
   when: 
     - ansible_distribution == "Debian"
     - ansible_distribution_release == "buster"
 
 - name: Install kubernetes Packages
   apt:
-    name: [ 'kubeadm', 'kubelet', 'kubectl' ]
+    name: [ 'kubeadm', 'kubelet', 'kubectl', 'containerd', 'helm' ]
     state: present
     update_cache: no
   become: yes
