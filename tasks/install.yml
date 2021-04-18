@@ -17,7 +17,8 @@
   apt_repository:
     repo: "{{ item }}"
     state: present
-    update_cache: no
+    update_cache:     "{{ apt_proxy.update_repo | default(no) }}"
+    cache_valid_time: "{{ apt_proxy.update_cache | default(0) }}"
   become: yes
   with_items:
     - deb https://apt.kubernetes.io/ kubernetes-xenial main
@@ -31,5 +32,6 @@
   apt:
     name: [ 'kubeadm', 'kubelet', 'kubectl', 'containerd', 'helm' ]
     state: present
-    update_cache: no
+    update_cache:     "{{ apt_proxy.update_repo | default(no) }}"
+    cache_valid_time: "{{ apt_proxy.update_cache | default(0) }}"
   become: yes
